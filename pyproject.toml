@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "neo4j-python-migrations"
+version = "0.1.0"
+description = "A database migration tool for Neo4j that allows to apply Cypher-based and arbitrary Python-based migrations."
+authors = ["Grigory Bukovsky <booqoffsky@yandex.ru>"]
+readme = "README.md"
+license = "MIT"
+packages = [{include = "neo4j_python_migrations"}]
+repository = 'https://github.com/booqoffsky/neo4j-python-migrations'
+keywords = ['neo4j', 'migrations', 'python', 'migrator']
+
+[tool.poetry.dependencies]
+python = "^3.8"
+neo4j = "^5.1.0"
+typer = "^0.6.1"
+yarl = "^1.8.1"
+attr = "^0.3.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10.0"
+mypy = "^0.982"
+wemake-python-styleguide = "^0.17.0"
+isort = "^5.10.1"
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+pyfakefs = "^5.0.0"
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+allow_subclassing_any = true
+allow_untyped_calls = true
+pretty = true
+show_error_codes = true
+implicit_reexport = true
+allow_untyped_decorators = true
+warn_return_any = false
+namespace_packages = true
+exclude = ['venv/']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["neo4j_python_migrations", "tests",]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

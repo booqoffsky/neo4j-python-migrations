@@ -1,0 +1,110 @@
+name: Test and lint
+
+on: push
+
+jobs:
+  pytest:
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    strategy:
+      matrix:
+        py_version: ["3.8", "3.9", "3.10"]
+    runs-on: ubuntu-latest
+    env:
+      NEO4J_MIGRATIONS_USER: neo4j
+      NEO4J_MIGRATIONS_PASS: test
+      NEO4J_MIGRATIONS_HOST: localhost
+      NEO4J_MIGRATIONS_PORT: 7687
+      NEO4J_MIGRATIONS_SCHEME: neo4j
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ matrix.py_version }}"
+          cache: "poetry"
+      - name: Install deps
+        run: poetry install
+      - name: Run pytest check
+        run: poetry run pytest -vv --cov="neo4j_python_migrations" .
+      - name: Generate report
+        run: poetry run coverage xml
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3
+        if: matrix.py_version == '3.9'
+
+    services:
+      neo4j:
+        image: neo4j:4.4.10
+        env:
+          NEO4J_AUTH: neo4j/test
+        ports:
+          - 7687:7687
+          - 7474:7474
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"
+          --health-interval 1s
+          --health-timeout 3s
+          --health-retries 30
+  flake8:
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "poetry"
+      - name: Install deps
+        run: poetry install
+      - name: Run flake8
+        run: poetry run flake8 neo4j_python_migrations --count
+  black:
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "poetry"
+      - name: Install deps
+        run: poetry install
+      - name: Run black
+        run: poetry run black --check neo4j_python_migrations tests
+
+  mypy:
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "poetry"
+      - name: Install deps
+        run: poetry install
+      - name: Run mypy
+        run: poetry run mypy neo4j_python_migrations tests
