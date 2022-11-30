@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from attr import asdict, define, field
 from neo4j import Session
+from packaging.version import Version
 
 
 class MigrationType(str, Enum):  # noqa: WPS600
@@ -13,11 +14,12 @@ class MigrationType(str, Enum):  # noqa: WPS600
     CYPHER = "CYPHER"
 
 
-@define(kw_only=True)
+@define(kw_only=True, order=False)
 class Migration:
     """The base class for all migrations."""
 
     version: str
+    parsed_version: Version = field(init=False)
     description: str
     type: str
     source: Optional[str] = None
@@ -58,6 +60,12 @@ class Migration:
         """
         raise NotImplementedError()
 
+    def __attrs_post_init__(self) -> None:
+        self.parsed_version = Version(self.version)  # noqa: WPS601
+
+    def __lt__(self, other: Any) -> bool:
+        return self.parsed_version < other.parsed_version
+
 
 @define
 class PythonMigration(Migration):
@@ -79,6 +87,7 @@ class CypherMigration(Migration):
     statements: List[str] = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
+        super().__attrs_post_init__()
         self.statements = list(  # noqa: WPS601
             filter(
                 lambda statement: statement,

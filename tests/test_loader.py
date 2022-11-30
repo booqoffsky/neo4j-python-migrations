@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+from typing import List
 from unittest.mock import Mock
 
 import pytest
@@ -80,20 +81,40 @@ def test_load_python_migration() -> None:
     session.test.assert_called()
 
 
-def test_migrations_order(fs: FakeFilesystem) -> None:
+@pytest.mark.parametrize(
+    "filenames, expected_versions",
+    [
+        (
+            [
+                "V0003__migration.cypher",
+                "V0001__migration.cypher",
+                "V0002__migration.cypher",
+            ],
+            ["0001", "0002", "0003"],
+        ),
+        (
+            [
+                "V0_3_0__migration.cypher",
+                "V0_20_0__migration.cypher",
+            ],
+            ["0.3.0", "0.20.0"],
+        ),
+    ],
+)
+def test_migrations_order(
+    fs: FakeFilesystem,
+    filenames: List[str],
+    expected_versions: List[str],
+) -> None:
     migrations_path = Path("./migrations")
-    migration_files = [
-        migrations_path.joinpath("V0003__migration.cypher"),
-        migrations_path.joinpath("V0001__migration.cypher"),
-        migrations_path.joinpath("V0002__migration.cypher"),
-    ]
+    migration_files = [migrations_path.joinpath(filename) for filename in filenames]
     for file_path in migration_files:
         fs.create_file(file_path, contents="MATCH (n) RETURN n;")
 
     loaded_migrations_versions = [
         migration.version for migration in loader.load(migrations_path)
     ]
-    assert loaded_migrations_versions == ["0001", "0002", "0003"]
+    assert loaded_migrations_versions == expected_versions
 
 
 def test_exception_on_two_identical_versions(fs: FakeFilesystem) -> None:

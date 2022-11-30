@@ -50,7 +50,7 @@ def load(path: Path) -> List[Migration]:  # noqa: WPS210
             migration_file=migration_file,
         )
 
-    return sorted(migrations.values(), key=lambda migration: migration.version)
+    return sorted(migrations.values())
 
 
 def _prepare_version(version: str) -> str:
