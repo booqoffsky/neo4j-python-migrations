@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "neo4j-python-migrations"
-version = "0.1.0"
+version = "0.1.1"
 description = "A database migration tool for Neo4j that allows to apply Cypher-based and arbitrary Python-based migrations."
 authors = ["Grigory Bukovsky <booqoffsky@yandex.ru>"]
 readme = "README.md"
