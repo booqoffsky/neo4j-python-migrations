@@ -1,5 +1,5 @@
 import re
-from importlib.machinery import SourceFileLoader
+import importlib.util
 from itertools import chain
 from pathlib import Path
 from typing import List
@@ -66,7 +66,9 @@ def _load_python_migration(
     description: str,
     migration_file: Path,
 ) -> PythonMigration:
-    module = SourceFileLoader(migration_file.stem, str(migration_file)).load_module()
+    spec = importlib.util.spec_from_file_location(migration_file.stem, migration_file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     return PythonMigration(
         version=version,
         description=description,
