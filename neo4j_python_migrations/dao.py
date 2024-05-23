@@ -24,7 +24,7 @@ class MigrationDAO:
         self.baseline = "BASELINE"
 
     @cached_property
-    def user(self) -> str:
+    def user(self) -> str | None:
         """
         The name of the user connected to the database.
 
@@ -32,7 +32,7 @@ class MigrationDAO:
         """
         with self.driver.session(database=self.schema_database) as session:
             query_result = session.run("SHOW CURRENT USER")
-            return query_result.single().value("user")  # type: ignore
+            return query_result.single().value("user") if query_result.single() else None
 
     def create_baseline(self) -> None:
         """Create a base node if it doesn't already exist."""
