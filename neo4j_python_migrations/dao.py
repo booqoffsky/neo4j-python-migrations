@@ -2,7 +2,7 @@ from functools import cached_property
 from getpass import getuser
 from typing import List, Optional
 
-from neo4j import Driver
+from neo4j import Driver, Transaction
 
 from neo4j_python_migrations.migration import Migration
 
@@ -87,6 +87,7 @@ class MigrationDAO:
         self,
         migration: Migration,
         duration: float,
+        tx: Transaction,
     ) -> None:
         """
         Add a migration record.
@@ -94,45 +95,44 @@ class MigrationDAO:
         :param migration: applied migration.
         :param duration: duration of migration execution (seconds).
         """
-        with self.driver.session(database=self.schema_database) as session:
-            session.run(
-                """
-                MATCH (m1:__Neo4jMigration)
-                WHERE
-                    coalesce(m1.project,'<default>')
-                        = coalesce($project,'<default>')
-                    AND coalesce(m1.migrationTarget,'<default>')
-                        = coalesce($migration_target,'<default>')
-                    AND NOT (m1)-[:MIGRATED_TO]->(:__Neo4jMigration)
-                WITH m1
-                CREATE (m2:__Neo4jMigration {
-                        version: $version_to,
-                        description: $description,
-                        type: $type,
-                        source: $source,
-                        project: $project,
-                        migrationTarget: $migration_target,
-                        checksum: $checksum
-                    }
-                )
-                MERGE (m1)-[link:MIGRATED_TO]->(m2)
-                SET
-                    link.at = datetime(),
-                    link.in = duration({seconds: $duration}),
-                    link.by = $migrated_by,
-                    link.connectedAs = $connected_as
-                """,
-                version_to=migration.version,
-                description=migration.description,
-                source=migration.source,
-                type=migration.type,
-                checksum=migration.checksum,
-                duration=duration,
-                project=self.project,
-                migration_target=self.database,
-                migrated_by=getuser(),
-                connected_as=self.user,
+        tx.run(
+            """
+            MATCH (m1:__Neo4jMigration)
+            WHERE
+                coalesce(m1.project,'<default>')
+                    = coalesce($project,'<default>')
+                AND coalesce(m1.migrationTarget,'<default>')
+                    = coalesce($migration_target,'<default>')
+                AND NOT (m1)-[:MIGRATED_TO]->(:__Neo4jMigration)
+            WITH m1
+            CREATE (m2:__Neo4jMigration {
+                    version: $version_to,
+                    description: $description,
+                    type: $type,
+                    source: $source,
+                    project: $project,
+                    migrationTarget: $migration_target,
+                    checksum: $checksum
+                }
             )
+            MERGE (m1)-[link:MIGRATED_TO]->(m2)
+            SET
+                link.at = datetime(),
+                link.in = duration({seconds: $duration}),
+                link.by = $migrated_by,
+                link.connectedAs = $connected_as
+            """,
+            version_to=migration.version,
+            description=migration.description,
+            source=migration.source,
+            type=migration.type,
+            checksum=migration.checksum,
+            duration=duration,
+            project=self.project,
+            migration_target=self.database,
+            migrated_by=getuser(),
+            connected_as=self.user,
+        )
 
     def get_applied_migrations(self) -> List[Migration]:
         """

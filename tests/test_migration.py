@@ -81,8 +81,8 @@ def test_apply_cypher_migration() -> None:
     session = MagicMock()
     migration.apply(session)
 
-    assert call.begin_transaction().__enter__().run("STATEMENT1") in session.mock_calls
-    assert call.begin_transaction().__enter__().run("STATEMENT2") in session.mock_calls
+    assert call.run("STATEMENT1") in session.mock_calls
+    assert call.run("STATEMENT2") in session.mock_calls
 
 
 def test_migration_from_child() -> None:
