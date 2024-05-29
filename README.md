@@ -56,7 +56,7 @@ from neo4j import Transaction
 
 
 # This function must be present
-def up(session: Transaction):
+def up(tx: Transaction):
     tx.run("DROP INDEX author_uuid_index")
 ```
 
