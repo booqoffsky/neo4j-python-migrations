@@ -101,7 +101,7 @@ def main(  # noqa: WPS211, D103
         envvar="NEO4J_MIGRATIONS_USER",
     ),
     password: str = Option(
-        ...,
+        "neo4j",
         help="The password of the user connecting to the database.",
         envvar="NEO4J_MIGRATIONS_PASS",
     ),

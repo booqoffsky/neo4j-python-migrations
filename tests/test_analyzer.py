@@ -11,7 +11,7 @@ from neo4j_python_migrations.migration import Migration, MigrationType
 
 def test_pending_migrations() -> None:
     local_migrations = [
-        Migration(version="0001", description="123", type=MigrationType.PYTHON)
+        Migration(version="0001", description="123", type=MigrationType.PYTHON),
     ]
     remote_migrations: List[Migration] = []
 

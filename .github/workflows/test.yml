@@ -10,11 +10,11 @@ jobs:
       contents: write
     strategy:
       matrix:
-        py_version: ["3.8", "3.9", "3.10"]
+        py_version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ubuntu-latest
     env:
       NEO4J_MIGRATIONS_USER: neo4j
-      NEO4J_MIGRATIONS_PASS: test
+      NEO4J_MIGRATIONS_PASS: test1234
       NEO4J_MIGRATIONS_HOST: localhost
       NEO4J_MIGRATIONS_PORT: 7687
       NEO4J_MIGRATIONS_SCHEME: neo4j
@@ -39,9 +39,9 @@ jobs:
 
     services:
       neo4j:
-        image: neo4j:4.4.10
+        image: neo4j:5.20
         env:
-          NEO4J_AUTH: neo4j/test
+          NEO4J_AUTH: neo4j/test1234
         ports:
           - 7687:7687
           - 7474:7474
@@ -63,7 +63,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
           cache: "poetry"
       - name: Install deps
         run: poetry install
@@ -82,7 +82,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
           cache: "poetry"
       - name: Install deps
         run: poetry install
@@ -102,7 +102,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
           cache: "poetry"
       - name: Install deps
         run: poetry install
