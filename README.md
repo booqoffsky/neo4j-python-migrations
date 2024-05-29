@@ -52,13 +52,12 @@ Therefore, if you need both DDL and DML commands, split them into different file
 ### Python
 Python-based migrations should have a special format, for example `./migrations/V0002__drop_index.py`:
 ```
-from neo4j import Session
+from neo4j import Transaction
 
 
 # This function must be present
-def up(session: Session):
-    with session.begin_transaction() as tx:
-        tx.run("DROP INDEX author_uuid_index")
+def up(session: Transaction):
+    tx.run("DROP INDEX author_uuid_index")
 ```
 
 ## Applying migrations

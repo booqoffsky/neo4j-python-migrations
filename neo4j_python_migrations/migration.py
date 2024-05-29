@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from attr import asdict, define, field
-from neo4j import Session
+from neo4j import Session, Transaction
 from packaging.version import Version
 
 
@@ -106,7 +106,6 @@ class CypherMigration(Migration):
 
         self.checksum = str(checksum)
 
-    def apply(self, session: Session) -> None:  # noqa: D102
-        with session.begin_transaction() as tx:
-            for statement in self.statements:
-                tx.run(statement)
+    def apply(self, tx: Transaction) -> None:  # noqa: D102
+        for statement in self.statements:
+            tx.run(statement)

@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Callable, Optional
 
-from neo4j import Driver
+from neo4j import Driver, Transaction
 
 from neo4j_python_migrations import analyzer, loader
 from neo4j_python_migrations.dao import MigrationDAO
@@ -66,16 +66,20 @@ class Executor:
 
         for migration in analyzing_result.pending_migrations:
             with self.driver.session(database=self.database) as session:
-                start_time = time.monotonic()
-                migration.apply(session)
-                duration = time.monotonic() - start_time
-            self.dao.add_migration(
-                migration,
-                duration,
-            )
+                with session.begin_transaction() as tx:
 
-            if on_apply:
-                on_apply(migration)
+                    start_time = time.monotonic()
+                    migration.apply(tx)
+                    duration = time.monotonic() - start_time
+
+                    self.dao.add_migration(
+                        migration,
+                        duration,
+                        tx
+                    )
+
+                    if on_apply:
+                        on_apply(migration)
 
     def analyze(self) -> analyzer.AnalyzingResult:
         """
