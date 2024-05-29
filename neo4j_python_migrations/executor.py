@@ -46,7 +46,10 @@ class Executor:
         self.local_migrations = loader.load(migrations_path)
         self.database = database
 
-    def migrate(self, on_apply: Optional[Callable[[Migration], None]] = None) -> None:
+    def migrate(  # noqa: WPS210
+        self,
+        on_apply: Optional[Callable[[Migration], None]] = None,
+    ) -> None:
         """
         Retrieves all pending migrations, verify and applies them.
 
@@ -65,17 +68,18 @@ class Executor:
             self.dao.create_constraints()
 
         for migration in analyzing_result.pending_migrations:
-            with self.driver.session(database=self.database) as session:
-                start_time = time.monotonic()
-                migration.apply(session)
-                duration = time.monotonic() - start_time
-            self.dao.add_migration(
-                migration,
-                duration,
-            )
+            self.dao.add_migration(migration, 0, dry_run=True)
 
-            if on_apply:
-                on_apply(migration)
+            with self.driver.session(database=self.database) as session:
+                with session.begin_transaction() as tx:
+                    start_time = time.monotonic()
+                    migration.apply(tx)
+                    duration = time.monotonic() - start_time
+
+                    if on_apply:
+                        on_apply(migration)  # noqa: WPS220
+
+                self.dao.add_migration(migration, duration)
 
     def analyze(self) -> analyzer.AnalyzingResult:
         """

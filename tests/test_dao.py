@@ -1,29 +1,17 @@
-import os
-from typing import Generator, Optional
+from typing import Optional
 
 import pytest
-from neo4j import Driver, GraphDatabase
-from yarl import URL
+from neo4j import Driver
 
 from neo4j_python_migrations.dao import MigrationDAO
 from neo4j_python_migrations.migration import Migration, MigrationType
 
-username = os.environ["NEO4J_MIGRATIONS_USER"]
-password = os.environ["NEO4J_MIGRATIONS_PASS"]
-host = os.environ["NEO4J_MIGRATIONS_HOST"]
-port = int(os.environ["NEO4J_MIGRATIONS_PORT"])
-scheme = os.environ["NEO4J_MIGRATIONS_SCHEME"]
+from .conftest import can_connect_to_neo4j, username
 
-
-@pytest.fixture
-def neo4j_driver() -> Generator[Driver, None, None]:
-    with GraphDatabase.driver(
-        str(URL.build(scheme=scheme, host=host, port=port)),
-        auth=(username, password),
-    ) as driver:
-        yield driver
-        with driver.session() as session:
-            session.run("MATCH (n) DETACH DELETE n")
+pytestmark = pytest.mark.skipif(
+    not can_connect_to_neo4j(),
+    reason="Neo4j is not available",
+)
 
 
 def test_create_baseline(neo4j_driver: Driver) -> None:
@@ -115,8 +103,8 @@ def test_add_and_get_migrations(neo4j_driver: Driver) -> None:
 
     dao.add_migration(migrations[0], duration=0.1)
     dao.add_migration(migrations[1], duration=0.2)
-    applied_migrations = dao.get_applied_migrations()
 
+    applied_migrations = dao.get_applied_migrations()
     assert applied_migrations == migrations
 
 

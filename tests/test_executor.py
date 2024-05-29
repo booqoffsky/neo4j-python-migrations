@@ -2,13 +2,17 @@ from typing import Optional
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
+from neo4j import Driver
 
+from neo4j_python_migrations import dao
 from neo4j_python_migrations.analyzer import (
     AnalyzingResult,
     InvalidVersion,
     InvalidVersionStatus,
 )
 from neo4j_python_migrations.executor import Executor
+from neo4j_python_migrations.migration import CypherMigration, Migration
 
 
 @patch("neo4j_python_migrations.loader.load")
@@ -118,3 +122,65 @@ def test_dao_schema_database(
         schema_database=schema_db,
     )
     assert executor.dao.schema_database == expected_db
+
+
+@patch("neo4j_python_migrations.loader.load")
+def test_dao_errors_cause_rollback(
+    loader_mock: MagicMock,
+    neo4j_driver: Driver,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    migration = CypherMigration(
+        version="0001",
+        description="123",
+        query="CREATE CONSTRAINT foobar FOR (n:Test) REQUIRE n.id IS UNIQUE;",
+    )
+    executor = Executor(
+        driver=neo4j_driver,
+        migrations_path=Mock(),
+    )
+
+    def getuser() -> None:
+        raise Exception("Test exception")
+
+    monkeypatch.setattr(dao, "getuser", getuser)
+
+    executor.analyze = Mock()  # type: ignore
+    executor.analyze.return_value = AnalyzingResult(pending_migrations=[migration])
+    with pytest.raises(Exception, match="Test exception"):
+        executor.migrate()
+
+    with neo4j_driver.session() as session:
+        x = session.run("SHOW CONSTRAINTS YIELD name")
+        names = [i[0] for i in x]
+        assert "foobar" not in names
+
+
+@patch("neo4j_python_migrations.loader.load")
+def test_on_apply_errors_cause_rollback(
+    loader_mock: MagicMock,
+    neo4j_driver: Driver,
+) -> None:
+    migration = CypherMigration(
+        version="0001",
+        description="123",
+        query="CREATE CONSTRAINT foobar FOR (n:Test) REQUIRE n.id IS UNIQUE;",
+    )
+    executor = Executor(
+        driver=neo4j_driver,
+        migrations_path=Mock(),
+    )
+
+    executor.analyze = Mock()  # type: ignore
+    executor.analyze.return_value = AnalyzingResult(pending_migrations=[migration])
+
+    def on_apply(migration: Migration) -> None:
+        raise Exception("Test exception")
+
+    with pytest.raises(Exception, match="Test exception"):
+        executor.migrate(on_apply=on_apply)
+
+    with neo4j_driver.session() as session:
+        x = session.run("SHOW CONSTRAINTS YIELD name")
+        names = [i[0] for i in x]
+        assert "foobar" not in names

@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from attr import asdict, define, field
-from neo4j import Session
+from neo4j import Transaction
 from packaging.version import Version
 
 
@@ -51,11 +51,11 @@ class Migration:
         """
         return cls.from_dict(asdict(other))
 
-    def apply(self, session: Session) -> None:
+    def apply(self, tx: Transaction) -> None:
         """
         Apply migration to the database.
 
-        :param session: neo4j session.
+        :param tx: neo4j transaction.
         :raises NotImplementedError: if not implemented.
         """
         raise NotImplementedError()
@@ -71,11 +71,11 @@ class Migration:
 class PythonMigration(Migration):
     """Migration based on a python code."""
 
-    code: Callable[[Session], None]
+    code: Callable[[Transaction], None]
     type: str = field(default=MigrationType.PYTHON, init=False)
 
-    def apply(self, session: Session) -> None:  # noqa: D102
-        self.code(session)
+    def apply(self, tx: Transaction) -> None:  # noqa: D102
+        self.code(tx)
 
 
 @define
@@ -106,7 +106,6 @@ class CypherMigration(Migration):
 
         self.checksum = str(checksum)
 
-    def apply(self, session: Session) -> None:  # noqa: D102
-        with session.begin_transaction() as tx:
-            for statement in self.statements:
-                tx.run(statement)
+    def apply(self, tx: Transaction) -> None:  # noqa: D102
+        for statement in self.statements:
+            tx.run(statement)

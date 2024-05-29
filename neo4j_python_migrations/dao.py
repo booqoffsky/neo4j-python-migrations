@@ -24,15 +24,17 @@ class MigrationDAO:
         self.baseline = "BASELINE"
 
     @cached_property
-    def user(self) -> str:
+    def user(self) -> Optional[str]:
         """
         The name of the user connected to the database.
 
         :returns: the name.
         """
         with self.driver.session(database=self.schema_database) as session:
-            query_result = session.run("SHOW CURRENT USER")
-            return query_result.single().value("user")  # type: ignore
+            query_result = session.run("SHOW CURRENT USER").single()
+            if query_result:
+                return query_result.value("user")
+            return None
 
     def create_baseline(self) -> None:
         """Create a base node if it doesn't already exist."""
@@ -87,52 +89,67 @@ class MigrationDAO:
         self,
         migration: Migration,
         duration: float,
+        dry_run: bool = False,
     ) -> None:
         """
         Add a migration record.
 
         :param migration: applied migration.
         :param duration: duration of migration execution (seconds).
+        :param dry_run: do not make actual changes.
+        :raises ValueError: if the migration record has not been created.
         """
         with self.driver.session(database=self.schema_database) as session:
-            session.run(
-                """
-                MATCH (m1:__Neo4jMigration)
-                WHERE
-                    coalesce(m1.project,'<default>')
-                        = coalesce($project,'<default>')
-                    AND coalesce(m1.migrationTarget,'<default>')
-                        = coalesce($migration_target,'<default>')
-                    AND NOT (m1)-[:MIGRATED_TO]->(:__Neo4jMigration)
-                WITH m1
-                CREATE (m2:__Neo4jMigration {
-                        version: $version_to,
-                        description: $description,
-                        type: $type,
-                        source: $source,
-                        project: $project,
-                        migrationTarget: $migration_target,
-                        checksum: $checksum
-                    }
+            with session.begin_transaction() as tx:
+                run_result = tx.run(
+                    """
+                    MATCH (m1:__Neo4jMigration)
+                    WHERE
+                        coalesce(m1.project,'<default>')
+                            = coalesce($project,'<default>')
+                        AND coalesce(m1.migrationTarget,'<default>')
+                            = coalesce($migration_target,'<default>')
+                        AND NOT (m1)-[:MIGRATED_TO]->(:__Neo4jMigration)
+                    WITH m1
+                    CREATE (m2:__Neo4jMigration {
+                            version: $version_to,
+                            description: $description,
+                            type: $type,
+                            source: $source,
+                            project: $project,
+                            migrationTarget: $migration_target,
+                            checksum: $checksum
+                        }
+                    )
+                    MERGE (m1)-[link:MIGRATED_TO]->(m2)
+                    SET
+                        link.at = datetime(),
+                        link.in = duration({seconds: $duration}),
+                        link.by = $migrated_by,
+                        link.connectedAs = $connected_as
+                    """,
+                    version_to=migration.version,
+                    description=migration.description,
+                    source=migration.source,
+                    type=migration.type,
+                    checksum=migration.checksum,
+                    duration=duration,
+                    project=self.project,
+                    migration_target=self.database,
+                    migrated_by=getuser(),
+                    connected_as=self.user,
                 )
-                MERGE (m1)-[link:MIGRATED_TO]->(m2)
-                SET
-                    link.at = datetime(),
-                    link.in = duration({seconds: $duration}),
-                    link.by = $migrated_by,
-                    link.connectedAs = $connected_as
-                """,
-                version_to=migration.version,
-                description=migration.description,
-                source=migration.source,
-                type=migration.type,
-                checksum=migration.checksum,
-                duration=duration,
-                project=self.project,
-                migration_target=self.database,
-                migrated_by=getuser(),
-                connected_as=self.user,
-            )
+                result_summary = run_result.consume()
+                if dry_run:
+                    tx.rollback()
+                if (
+                    result_summary.counters.nodes_created != 1
+                    and result_summary.counters.relationships_created != 1
+                ):
+                    raise ValueError(
+                        "The migration record could not be created. "
+                        "Check the migration graph.",
+                    )
 
     def get_applied_migrations(self) -> List[Migration]:
         """
