@@ -3,6 +3,7 @@ from itertools import chain
 from typing import List, Optional
 
 from attr import define, field
+from packaging.version import Version
 
 from neo4j_python_migrations.migration import Migration
 
@@ -66,13 +67,14 @@ def analyze(  # noqa: WPS210
 
     local_migrations_dct = {elem.version: elem for elem in local_migrations}
     remote_migrations_dct = {elem.version: elem for elem in remote_migrations}
-    versions = sorted(set(chain(local_migrations_dct, remote_migrations_dct)))
-
+    versions = sorted(
+        set(chain(local_migrations_dct, remote_migrations_dct)),
+        key=Version,
+    )
     for version in versions:
         local_migration = local_migrations_dct.get(version)
         remote_migration = remote_migrations_dct.get(version)
-
-        invalid_status = _get_invalid_version_invalid(
+        invalid_status = _check_invalid_version_status(
             local_migration,
             remote_migration,
             analyzing_result.latest_applied_version,
@@ -89,7 +91,7 @@ def analyze(  # noqa: WPS210
     return analyzing_result
 
 
-def _get_invalid_version_invalid(
+def _check_invalid_version_status(
     local_migration: Optional[Migration],
     remote_migration: Optional[Migration],
     latest_applied_version: str,
@@ -102,6 +104,6 @@ def _get_invalid_version_invalid(
         return InvalidVersionStatus.MISSED_LOCALLY
 
     if local_migration and not remote_migration:
-        if local_migration.version < latest_applied_version:
+        if local_migration.parsed_version < Version(latest_applied_version):
             return InvalidVersionStatus.MISSED_REMOTELY
     return None

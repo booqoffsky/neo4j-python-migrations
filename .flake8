@@ -75,7 +75,9 @@ ignore =
   ; subprocess call - check for execution of untrusted input
   S603
   ; Starting a process with a partial executable path
-  S607
+  S607,
+  ; Found multiline conditions
+  WPS337,
 
 per-file-ignores =
   ; all tests

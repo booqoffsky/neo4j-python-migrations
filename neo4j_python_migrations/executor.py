@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Callable, Optional
 
-from neo4j import Driver, Transaction
+from neo4j import Driver
 
 from neo4j_python_migrations import analyzer, loader
 from neo4j_python_migrations.dao import MigrationDAO
@@ -46,7 +46,10 @@ class Executor:
         self.local_migrations = loader.load(migrations_path)
         self.database = database
 
-    def migrate(self, on_apply: Optional[Callable[[Migration], None]] = None) -> None:
+    def migrate(  # noqa: WPS210
+        self,
+        on_apply: Optional[Callable[[Migration], None]] = None,
+    ) -> None:
         """
         Retrieves all pending migrations, verify and applies them.
 
@@ -65,21 +68,18 @@ class Executor:
             self.dao.create_constraints()
 
         for migration in analyzing_result.pending_migrations:
+            self.dao.add_migration(migration, 0, dry_run=True)
+
             with self.driver.session(database=self.database) as session:
                 with session.begin_transaction() as tx:
-
                     start_time = time.monotonic()
                     migration.apply(tx)
                     duration = time.monotonic() - start_time
 
-                    self.dao.add_migration(
-                        migration,
-                        duration,
-                        tx
-                    )
-
                     if on_apply:
-                        on_apply(migration)
+                        on_apply(migration)  # noqa: WPS220
+
+                self.dao.add_migration(migration, duration)
 
     def analyze(self) -> analyzer.AnalyzingResult:
         """
