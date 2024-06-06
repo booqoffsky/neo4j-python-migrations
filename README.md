@@ -72,7 +72,7 @@ Options:
                                   default: neo4j]
   --password TEXT                 The password of the user connecting to the
                                   database.  [env var: NEO4J_MIGRATIONS_PASS;
-                                  required]
+                                  default: neo4j]
   --path PATH                     The path to the directory for scanning
                                   migration files.  [env var:
                                   NEO4J_MIGRATIONS_PATH; required]
