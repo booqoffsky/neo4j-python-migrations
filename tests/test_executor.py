@@ -13,6 +13,7 @@ from neo4j_python_migrations.analyzer import (
 )
 from neo4j_python_migrations.executor import Executor
 from neo4j_python_migrations.migration import CypherMigration, Migration
+from tests.conftest import can_connect_to_neo4j
 
 
 @patch("neo4j_python_migrations.loader.load")
@@ -124,6 +125,7 @@ def test_dao_schema_database(
     assert executor.dao.schema_database == expected_db
 
 
+@pytest.mark.skipif(not can_connect_to_neo4j(), reason="Can't connect to Neo4j")
 @patch("neo4j_python_migrations.loader.load")
 def test_dao_errors_cause_rollback(
     loader_mock: MagicMock,
@@ -156,6 +158,7 @@ def test_dao_errors_cause_rollback(
         assert "foobar" not in names
 
 
+@pytest.mark.skipif(not can_connect_to_neo4j(), reason="Can't connect to Neo4j")
 @patch("neo4j_python_migrations.loader.load")
 def test_on_apply_errors_cause_rollback(
     loader_mock: MagicMock,

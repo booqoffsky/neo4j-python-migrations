@@ -8,7 +8,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -20,17 +19,18 @@ repository = 'https://github.com/booqoffsky/neo4j-python-migrations'
 keywords = ['neo4j', 'migrations', 'python', 'migrator']
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 neo4j = "^5.1.0"
-typer = "^0.6.1"
+typer = "^0.12.3"
 yarl = "^1.8.1"
-attr = "^0.3.2"
+attrs = "^23.2.0"
+packaging = "^24.0"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 mypy = "^1.10.0"
-wemake-python-styleguide = "^0.17.0"
+wemake-python-styleguide = "^0.19.0"
 isort = "^5.10.1"
 pytest = "^8.2.0"
 pytest-cov = "^4.0.0"
