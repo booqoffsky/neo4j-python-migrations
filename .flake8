@@ -78,6 +78,26 @@ ignore =
   S607,
   ; Found multiline conditions
   WPS337,
+  ; Missing docstring in public function
+  D103,
+  ; Missing docstring in public package
+  D104,
+  ; Found too short name
+  WPS111,
+  ; Found too long name
+  WPS118,
+  ; Found wrong variable name
+  WPS110,
+  ; Found block variables overlap
+  WPS440,
+  ; Found protected module import
+  WPS436,
+  ; Found nested function
+  WPS430,
+  ; Found wrong `raise` exception type
+  WPS454,
+  ; Found protected attribute usage
+  WPS437,
 
 per-file-ignores =
   ; all tests

@@ -20,9 +20,7 @@ def can_connect_to_neo4j() -> bool:
         ) as driver:
             driver.verify_connectivity()
         return True
-    except Exception as e:
-        print(e)
-
+    except Exception:
         return False
 
 
