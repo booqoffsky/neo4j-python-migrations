@@ -17,6 +17,7 @@ def can_connect_to_neo4j() -> bool:
         with GraphDatabase.driver(
             str(URL.build(scheme=scheme, host=host, port=port)),
             auth=(username, password),
+            connection_acquisition_timeout=5,
         ) as driver:
             driver.verify_connectivity()
         return True
