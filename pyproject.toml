@@ -24,7 +24,8 @@ python = "^3.8"
 neo4j = "^5.1.0"
 typer = "^0.6.1"
 yarl = "^1.8.1"
-attr = "^0.3.2"
+attrs = "^23.2.0"
+packaging = "^24.0"
 
 
 [tool.poetry.group.dev.dependencies]
