@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import MagicMock, Mock, call
 
 import pytest
@@ -59,7 +58,7 @@ def test_apply_python_migration() -> None:
 def test_init_cypher_migration(
     query: str,
     expected_checksum: str,
-    expected_statements: List[str],
+    expected_statements: list[str],
 ) -> None:
     migration = CypherMigration(
         version="0001",

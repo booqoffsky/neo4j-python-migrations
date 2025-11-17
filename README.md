@@ -43,7 +43,7 @@ Make sure to follow the naming convention as stated in
 ### Cypher
 Just create a Cypher file with your custom script, for example `./migrations/V0001__initial.cypher`:
 ```
-CREATE CONSTRAINT UniqueAuthor IF NOT EXISTS ON (a:AUTHOR) ASSERT a.uuid IS UNIQUE;
+CREATE CONSTRAINT UniqueAuthor IF NOT EXISTS FOR (a:AUTHOR) REQUIRE a.uuid IS UNIQUE;
 CREATE INDEX author_uuid_index IF NOT EXISTS FOR (a:AUTHOR) ON (a.uuid);
 ```
 This script will be executed within a single transaction.
@@ -57,7 +57,7 @@ from neo4j import Transaction
 
 # This function must be present
 def up(tx: Transaction):
-    tx.run("DROP INDEX author_uuid_index")
+    tx.run("DROP CONSTRAINT UniqueAuthor")
 ```
 
 ## Applying migrations

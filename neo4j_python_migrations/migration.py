@@ -1,8 +1,8 @@
 import binascii
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
-from attr import asdict, define, field
 from neo4j import Transaction
 from packaging.version import Version
 
@@ -14,7 +14,7 @@ class MigrationType(str, Enum):  # noqa: WPS600
     CYPHER = "CYPHER"
 
 
-@define(kw_only=True, order=False)
+@dataclass(kw_only=True, order=False)
 class Migration:
     """The base class for all migrations."""
 
@@ -26,7 +26,7 @@ class Migration:
     checksum: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, properties: Dict[str, Any]) -> "Migration":
+    def from_dict(cls, properties: dict[str, Any]) -> "Migration":
         """
         Get a class instance from a dictionary.
 
@@ -60,14 +60,14 @@ class Migration:
         """
         raise NotImplementedError()
 
-    def __attrs_post_init__(self) -> None:
+    def __post_init__(self) -> None:
         self.parsed_version = Version(self.version)  # noqa: WPS601
 
     def __lt__(self, other: Any) -> bool:
         return self.parsed_version < other.parsed_version
 
 
-@define
+@dataclass
 class PythonMigration(Migration):
     """Migration based on a python code."""
 
@@ -78,19 +78,19 @@ class PythonMigration(Migration):
         self.code(tx)
 
 
-@define
+@dataclass
 class CypherMigration(Migration):
     """Migration based on a cypher script."""
 
     query: str = field(repr=False)
     type: str = field(default=MigrationType.CYPHER, init=False)
-    statements: List[str] = field(init=False, repr=False)
+    statements: list[str] = field(init=False, repr=False)
 
-    def __attrs_post_init__(self) -> None:
-        super().__attrs_post_init__()
+    def __post_init__(self) -> None:
+        super().__post_init__()
         self.statements = list(  # noqa: WPS601
             filter(
-                lambda statement: statement,
+                None,
                 [statement.strip() for statement in self.query.split(";")[:-1]],
             ),
         )
@@ -99,7 +99,7 @@ class CypherMigration(Migration):
         for st in self.statements:
             binary_statement = st.encode()
             checksum = (
-                binascii.crc32(binary_statement, checksum)  # type: ignore
+                binascii.crc32(binary_statement, checksum)
                 if checksum
                 else binascii.crc32(binary_statement)
             )

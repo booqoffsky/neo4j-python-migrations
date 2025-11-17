@@ -1,6 +1,5 @@
 import tempfile
 from pathlib import Path
-from typing import List
 from unittest.mock import Mock
 
 import pytest
@@ -103,8 +102,8 @@ def test_load_python_migration() -> None:
 )
 def test_migrations_order(
     fs: FakeFilesystem,
-    filenames: List[str],
-    expected_versions: List[str],
+    filenames: list[str],
+    expected_versions: list[str],
 ) -> None:
     migrations_path = Path("./migrations")
     migration_files = [migrations_path.joinpath(filename) for filename in filenames]

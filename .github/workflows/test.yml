@@ -10,7 +10,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        py_version: ["3.9", "3.10", "3.11", "3.12"]
+        py_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ubuntu-latest
     env:
       NEO4J_MIGRATIONS_USER: neo4j
@@ -20,19 +20,18 @@ jobs:
       NEO4J_MIGRATIONS_SCHEME: neo4j
     steps:
       - uses: actions/checkout@v2
-      - name: Install poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.py_version }}"
-          cache: "poetry"
-      - name: Install deps
-        run: poetry install
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
       - name: Run pytest check
-        run: poetry run pytest -vv --cov="neo4j_python_migrations" .
+        run: uv run pytest -vv --cov="neo4j_python_migrations" .
       - name: Generate report
-        run: poetry run coverage xml
+        run: uv run coverage xml
       - name: Upload coverage reports to Codecov with GitHub Action
         uses: codecov/codecov-action@v3
         if: matrix.py_version == '3.9'
@@ -58,17 +57,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-          cache: "poetry"
-      - name: Install deps
-        run: poetry install
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
       - name: Run flake8
-        run: poetry run flake8 neo4j_python_migrations --count
+        run: uv run flake8 neo4j_python_migrations --count
   black:
     permissions:
       checks: write
@@ -77,17 +75,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-          cache: "poetry"
-      - name: Install deps
-        run: poetry install
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
       - name: Run black
-        run: poetry run black --check neo4j_python_migrations tests
+        run: uv run black --check neo4j_python_migrations tests
 
   mypy:
     permissions:
@@ -97,14 +94,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-          cache: "poetry"
-      - name: Install deps
-        run: poetry install
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
       - name: Run mypy
-        run: poetry run mypy neo4j_python_migrations tests
+        run: uv run mypy neo4j_python_migrations tests

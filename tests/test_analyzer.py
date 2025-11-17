@@ -1,5 +1,3 @@
-from typing import List
-
 from neo4j_python_migrations.analyzer import (
     AnalyzingResult,
     InvalidVersion,
@@ -13,7 +11,7 @@ def test_pending_migrations() -> None:
     local_migrations = [
         Migration(version="0001", description="123", type=MigrationType.PYTHON),
     ]
-    remote_migrations: List[Migration] = []
+    remote_migrations: list[Migration] = []
 
     assert analyze(local_migrations, remote_migrations) == AnalyzingResult(
         pending_migrations=local_migrations,
@@ -49,8 +47,8 @@ def test_ok_when_all_migrations_are_applied() -> None:
 
 
 def test_ok_when_there_are_no_migrations() -> None:
-    local_migrations: List[Migration] = []
-    remote_migrations: List[Migration] = []
+    local_migrations: list[Migration] = []
+    remote_migrations: list[Migration] = []
 
     assert analyze(local_migrations, remote_migrations) == AnalyzingResult()
 

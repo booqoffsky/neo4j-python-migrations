@@ -2,7 +2,6 @@ import re
 from importlib.util import module_from_spec, spec_from_file_location
 from itertools import chain
 from pathlib import Path
-from typing import List
 
 from neo4j_python_migrations.migration import (
     CypherMigration,
@@ -15,7 +14,7 @@ _VERSION_PATTERN = re.compile(
 )
 
 
-def load(path: Path) -> List[Migration]:  # noqa: WPS210
+def load(path: Path) -> list[Migration]:  # noqa: WPS210
     """
     Load local migrations that are stored at the specified path.
 

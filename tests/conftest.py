@@ -5,8 +5,8 @@ import pytest
 from neo4j import Driver, GraphDatabase
 from yarl import URL
 
-username = os.environ.get("NEO4J_MIGRATIONS_USER")
-password = os.environ.get("NEO4J_MIGRATIONS_PASS")
+username = os.environ.get("NEO4J_MIGRATIONS_USER", "neo4j")
+password = os.environ.get("NEO4J_MIGRATIONS_PASS", "neo4j")
 host = os.environ.get("NEO4J_MIGRATIONS_HOST", "localhost")
 port = int(os.environ.get("NEO4J_MIGRATIONS_PORT", 7687))
 scheme = os.environ.get("NEO4J_MIGRATIONS_SCHEME", "bolt")
