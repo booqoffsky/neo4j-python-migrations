@@ -1,6 +1,6 @@
 from functools import cached_property
 from getpass import getuser
-from typing import List, Optional
+from typing import Optional
 
 from neo4j import Driver
 
@@ -151,7 +151,7 @@ class MigrationDAO:
                         "Check the migration graph.",
                     )
 
-    def get_applied_migrations(self) -> List[Migration]:
+    def get_applied_migrations(self) -> list[Migration]:
         """
         Get an ordered list of applied migrations to the database.
 
@@ -169,8 +169,10 @@ class MigrationDAO:
                         = coalesce($project,'<default>')
                     AND coalesce(m.migrationTarget,'<default>')
                         = coalesce($migration_target,'<default>')
+                WITH m,
+                    [x IN split(m.version, '.') | toInteger(x)] AS version
                 RETURN m
-                ORDER BY m.version
+                ORDER BY version
                 """,
                 baseline=self.baseline,
                 project=self.project,

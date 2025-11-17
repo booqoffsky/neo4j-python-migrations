@@ -1,8 +1,8 @@
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from attr import define
 from neo4j import GraphDatabase
 from typer import Exit, Option, Typer
 from yarl import URL
@@ -12,7 +12,7 @@ from neo4j_python_migrations.executor import Executor
 cli = Typer()
 
 
-@define
+@dataclass
 class State:
     """Storage of common options for commands."""
 

@@ -1,8 +1,8 @@
 import enum
+from dataclasses import dataclass, field
 from itertools import chain
-from typing import List, Optional
+from typing import Optional
 
-from attr import define, field
 from packaging.version import Version
 
 from neo4j_python_migrations.migration import Migration
@@ -24,7 +24,7 @@ class InvalidVersionStatus(enum.Enum):
     DIFFERENT = enum.auto()
 
 
-@define
+@dataclass
 class InvalidVersion:
     """
     A class for storing an invalid version.
@@ -36,18 +36,18 @@ class InvalidVersion:
     status: InvalidVersionStatus
 
 
-@define
+@dataclass
 class AnalyzingResult:
     """A class for storing the analysis result."""
 
     latest_applied_version: Optional[str] = None
-    pending_migrations: List[Migration] = field(factory=lambda: [])  # noqa: WPS522
-    invalid_versions: List[InvalidVersion] = field(factory=lambda: [])  # noqa: WPS522
+    pending_migrations: list[Migration] = field(default_factory=list)
+    invalid_versions: list[InvalidVersion] = field(default_factory=list)
 
 
 def analyze(  # noqa: WPS210
-    local_migrations: List[Migration],
-    remote_migrations: List[Migration],
+    local_migrations: list[Migration],
+    remote_migrations: list[Migration],
 ) -> AnalyzingResult:
     """
     Analyze local and remote migrations.

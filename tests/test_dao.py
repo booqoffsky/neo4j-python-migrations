@@ -93,16 +93,34 @@ def test_get_migrations_if_there_are_no_applied_migrations(
     assert not dao.get_applied_migrations()
 
 
-def test_add_and_get_migrations(neo4j_driver: Driver) -> None:
+@pytest.mark.parametrize(
+    "migrations",
+    [
+        [
+            Migration(version="0001", description="123", type=MigrationType.CYPHER),
+            Migration(version="0002", description="te st", type=MigrationType.PYTHON),
+        ],
+        [
+            Migration(version="9.0.0", description="123", type=MigrationType.CYPHER),
+            Migration(version="10.9.0", description="te st", type=MigrationType.PYTHON),
+            Migration(
+                version="10.10.0", description="t e s t", type=MigrationType.PYTHON
+            ),
+        ],
+        [
+            Migration(version="9.0.0", description="123", type=MigrationType.CYPHER),
+            Migration(version="0010", description="te st", type=MigrationType.PYTHON),
+        ],
+    ],
+)
+def test_add_and_get_migrations(
+    neo4j_driver: Driver, migrations: list[Migration]
+) -> None:
     dao = MigrationDAO(neo4j_driver)
     dao.create_baseline()
-    migrations = [
-        Migration(version="0001", description="123", type=MigrationType.CYPHER),
-        Migration(version="0002", description="te st", type=MigrationType.PYTHON),
-    ]
 
-    dao.add_migration(migrations[0], duration=0.1)
-    dao.add_migration(migrations[1], duration=0.2)
+    for migration in migrations:
+        dao.add_migration(migration, duration=0.1)
 
     applied_migrations = dao.get_applied_migrations()
     assert applied_migrations == migrations
