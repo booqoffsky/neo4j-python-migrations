@@ -23,14 +23,6 @@ From PyPi:
 
 `pip3 install neo4j-python-migrations`
 
-If you want to install it from sources, try this:
-
-```
-python3 -m pip install poetry
-python3 -m pip install .
-python3 -m neo4j_python_migrations 
-```
-
 # Usage
 ## Creating migrations
 ### Naming Convention
