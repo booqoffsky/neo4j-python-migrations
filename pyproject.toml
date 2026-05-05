@@ -1,6 +1,6 @@
 [project]
 name = "neo4j-python-migrations"
-version = "0.1.4"
+version = "0.1.5"
 description = "A database migration tool for Neo4j that allows to apply Cypher-based and arbitrary Python-based migrations."
 authors = [{ name = "Grigory Bukovsky", email = "booqoffsky@yandex.ru" }]
 requires-python = ">=3.10"
