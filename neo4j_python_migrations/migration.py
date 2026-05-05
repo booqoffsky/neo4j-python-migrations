@@ -99,9 +99,9 @@ class CypherMigration(Migration):
         for st in self.statements:
             binary_statement = st.encode()
             checksum = (
-                binascii.crc32(binary_statement, checksum)
-                if checksum
-                else binascii.crc32(binary_statement)
+                binascii.crc32(binary_statement)
+                if checksum is None
+                else binascii.crc32(binary_statement, checksum)
             )
 
         self.checksum = str(checksum)
