@@ -144,7 +144,7 @@ class MigrationDAO:
                     tx.rollback()
                 if (
                     result_summary.counters.nodes_created != 1
-                    and result_summary.counters.relationships_created != 1
+                    or result_summary.counters.relationships_created != 1
                 ):
                     raise ValueError(
                         "The migration record could not be created. "
